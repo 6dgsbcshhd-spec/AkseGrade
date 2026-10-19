@@ -1,0 +1,103 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>AkseGrader</title><style>
+:root{--c:#16161a;--l:#2a2a31;--g:#f4c430;--m:#8d8d97}
+*{box-sizing:border-box;margin:0}
+body{background:radial-gradient(circle at 50% -10%,#2b2410,#0c0c0e 55%) fixed #0c0c0e;color:#eee;font:15px system-ui,sans-serif;padding:max(12px,env(safe-area-inset-top)) 12px 40px}
+main{max-width:980px;margin:auto}
+header{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:14px}
+h1{font-size:24px;color:var(--g)}h2{font-size:17px;margin:22px 0 10px}
+.m{color:var(--m)}.warn{color:#ff8a5b;margin-bottom:8px}
+.b{border:0;border-radius:12px;padding:11px 16px;font:600 14px system-ui;cursor:pointer;color:#111;background:var(--g);text-decoration:none;display:inline-block}
+.b:disabled{opacity:.35;cursor:not-allowed}
+.chip{background:var(--l);border-radius:10px;padding:10px 12px;margin-right:6px;font-weight:600;cursor:pointer;display:inline-block}
+.up{display:grid;gap:12px;grid-template-areas:"d d" "a b";grid-template-columns:1fr 1fr}
+#ls{grid-area:a}#rs{grid-area:b}#dial{grid-area:d;justify-self:center;text-align:center;width:100%;max-width:300px}
+@media(min-width:760px){.up{grid-template-areas:"a d b";grid-template-columns:1fr 290px 1fr;align-items:center}}
+.slot{background:var(--c);border:1px solid var(--l);border-radius:18px;min-height:200px;padding:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center}
+.slot img{width:120px;height:120px;object-fit:contain}.slot small{color:var(--m)}
+svg{width:240px;max-width:100%;height:auto}
+.q{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0 12px}
+.q button{background:var(--l);color:#ddd;border:0;border-radius:8px;padding:8px 10px;cursor:pointer;font-weight:600}
+#go{width:100%;font-size:17px;padding:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:10px}
+.it{position:relative;background:var(--c);border:1px solid var(--l);border-radius:14px;padding:8px 4px;text-align:center;cursor:pointer;display:flex;flex-direction:column;gap:2px;font-size:13px}
+.it img{width:64px;height:64px;object-fit:contain;margin:0 auto}
+.it span{color:var(--g)}.it i{position:absolute;top:6px;right:8px;font-style:normal;color:#111;background:var(--g);border-radius:8px;padding:0 6px;font-size:12px;font-weight:700}
+.it.sel{border-color:var(--g);box-shadow:inset 0 0 0 1px var(--g)}.it.off{opacity:.3;pointer-events:none}
+.ov{position:fixed;inset:0;background:#000e;display:none;align-items:center;justify-content:center;text-align:center;padding:24px;z-index:9}.ov.on{display:flex}
+.ov img{width:140px;height:140px;object-fit:contain}.ov h2{font-size:26px;margin:10px 0}.ov p{margin-bottom:16px}
+#tt{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#2a2a31;padding:10px 16px;border-radius:12px;display:none;z-index:10}
+</style></head><body><main>
+<header><h1>AkseGrader</h1><div><span class="chip" id="uid" onclick="navigator.clipboard?.writeText(String(S.id))">ID …</span><a class="b" href="https://t.me/akselovvv" target="_blank" rel="noopener">Пополнить подарки</a></div></header>
+<p class="warn" id="nt"></p>
+<section class="up">
+<div class="slot" id="ls"></div>
+<div id="dial">
+<svg viewBox="0 0 240 240"><defs><linearGradient id="gr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd84a"/><stop offset="1" stop-color="#ff6a00"/></linearGradient></defs>
+<circle cx="120" cy="120" r="100" fill="none" stroke="#25252b" stroke-width="14"/>
+<circle id="arc" cx="120" cy="120" r="100" fill="none" stroke="url(#gr)" stroke-width="14" stroke-dasharray="0 629" transform="rotate(-90 120 120)"/>
+<g id="nd" style="transform-origin:120px 120px"><path d="M120 34 111 10h18z" fill="#fff"/></g>
+<text id="pc" x="120" y="128" text-anchor="middle" font-size="36" font-weight="700" fill="#c9e65f">0.00%</text>
+<text x="120" y="152" text-anchor="middle" font-size="13" fill="#8d8d97">ваш шанс</text></svg>
+<div class="q"><button onclick="quick('x2')">x2</button><button onclick="quick('x5')">x5</button><button onclick="quick('x10')">x10</button><button onclick="quick('30%')">30%</button><button onclick="quick('50%')">50%</button><button onclick="quick('70%')">70%</button><button onclick="quick('r')">🔀</button></div>
+<button class="b" id="go" onclick="go()" disabled>Апгрейд</button>
+<p class="m" style="font-size:12px;margin-top:8px">Шанс = ценность вашего подарка ÷ ценность приза × 95%</p>
+</div>
+<div class="slot" id="rs"></div>
+</section>
+<h2>Мои подарки</h2><div class="grid" id="inv"></div>
+<h2>Призы</h2><div class="grid" id="cat"></div>
+</main>
+<div class="ov" id="cl"><div><h2>Сайт закрыт</h2><p class="m" id="cr"></p></div></div>
+<div class="ov" id="bn"><div><h2>Вы заблокированы</h2><p class="m" id="br"></p></div></div>
+<div class="ov" id="res"></div><div id="tt"></div>
+<script>
+const $=s=>document.querySelector(s),C=2*Math.PI*100;
+let G={},S={id:'',inv:{},site:{open:true}},tok=localStorage.getItem('ag_t'),sel={s:null,t:null},spin=false,pend=null;
+const val=k=>G[k][1],nm=k=>G[k][0],img=k=>`<img src="/g/${k}.png" alt="">`;
+const ch=(a,b)=>Math.round(Math.min(90,Math.max(1,a/b*95))*100)/100;
+const api=async(p,o={})=>{const r=await fetch(p,{...o,headers:{'x-token':tok||'','content-type':'application/json'}});return{st:r.status,d:await r.json().catch(()=>({}))}};
+function toast(t){const e=$('#tt');e.textContent=t;e.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(()=>e.style.display='none',2500)}
+async function boot(){
+ G=await(await fetch('/api/gifts')).json();
+ let r=tok?await api('/api/me'):null;
+ if(!r||r.st!==200){const d=await(await fetch('/api/register',{method:'POST'})).json();tok=d.token;localStorage.setItem('ag_t',tok);r=await api('/api/me')}
+ S=r.d;render();
+ new EventSource('/api/stream?t='+tok).onmessage=e=>{const s=JSON.parse(e.data);if(spin)pend=s;else{S=s;render()}};
+}
+const card=(k,w,n,off)=>`<div class="it${sel[w]===k?' sel':''}${off?' off':''}" onclick="pick('${w}','${k}')">${n>1?`<i>×${n}</i>`:''}${img(k)}<b>${nm(k)}</b><span>★${val(k)}</span></div>`;
+const slot=(id,k,t)=>{$(id).innerHTML=k?img(k)+`<b>${nm(k)}</b><small>★${val(k)}</small>`:`<small>${t}</small>`};
+function render(){
+ const closed=!S.site.open,mute=S.mute_until>Date.now();
+ $('#cl').classList.toggle('on',closed);$('#cr').textContent=S.site.reason||'Скоро вернёмся';
+ $('#bn').classList.toggle('on',!closed&&!!S.banned);$('#br').textContent=S.ban_reason||'';
+ $('#uid').textContent='ID '+S.id;
+ $('#nt').textContent=mute?'Вы в муте до '+new Date(S.mute_until).toLocaleString('ru')+' — апгрейд недоступен':'';
+ if(sel.s&&!(S.inv[sel.s]>0))sel.s=null;
+ if(sel.s&&sel.t&&val(sel.t)<=val(sel.s))sel.t=null;
+ $('#inv').innerHTML=Object.keys(S.inv).filter(k=>G[k]).map(k=>card(k,'s',S.inv[k],sel.t&&val(k)>=val(sel.t))).join('')||'<p class="m">Пока пусто. Нажмите «Пополнить подарки» — после передачи подарок появится здесь сразу.</p>';
+ $('#cat').innerHTML=Object.keys(G).map(k=>card(k,'t',0,sel.s&&val(k)<=val(sel.s))).join('');
+ slot('#ls',sel.s,'Выберите свой подарок');slot('#rs',sel.t,'Выберите приз');
+ const p=sel.s&&sel.t?ch(val(sel.s),val(sel.t)):0;
+ $('#pc').textContent=p.toFixed(2)+'%';$('#arc').setAttribute('stroke-dasharray',(p/100*C)+' '+C);
+ $('#go').disabled=!(sel.s&&sel.t&&!mute&&!spin);
+}
+function pick(w,k){if(spin)return;sel[w]=sel[w]===k?null:k;render()}
+function quick(m){
+ if(spin)return;if(!sel.s)return toast('Сначала выберите свой подарок');
+ const a=val(sel.s),c=Object.keys(G).filter(k=>val(k)>a);if(!c.length)return toast('Для этого подарка нет призов выше');
+ const near=f=>c.reduce((x,y)=>f(y)<f(x)?y:x);
+ sel.t=m==='r'?c[Math.random()*c.length|0]:m[0]==='x'?near(k=>Math.abs(val(k)-a*m.slice(1))):near(k=>Math.abs(ch(a,val(k))-parseInt(m)));
+ render();
+}
+async function go(){
+ if(spin)return;spin=true;$('#go').disabled=true;
+ const s=sel.s,t=sel.t,{st,d}=await api('/api/spin',{method:'POST',body:JSON.stringify({stake:s,target:t})});
+ if(st!==200){spin=false;if(pend){S=pend;pend=null}toast(d.error||'Ошибка');return render()}
+ const n=$('#nd');n.style.transition='none';n.style.transform='rotate(0deg)';n.getBoundingClientRect();
+ n.style.transition='transform 4.5s cubic-bezier(.12,.6,.1,1)';n.style.transform=`rotate(${1800+d.roll*3.6}deg)`;
+ await new Promise(r=>setTimeout(r,4700));
+ spin=false;if(pend){S=pend;pend=null}sel={s:null,t:null};render();
+ const o=$('#res');o.innerHTML=`<div>${img(d.win?t:s)}<h2>${d.win?'Победа!':'Не повезло'}</h2><p class="m">${d.win?'Вы получили '+nm(t):'Подарок '+nm(s)+' сгорел'}</p><button class="b" onclick="this.closest('.ov').classList.remove('on')">Ок</button></div>`;o.classList.add('on');
+}
+boot();
+</script></body></html>
